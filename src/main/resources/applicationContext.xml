@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xmlns:p="http://www.springframework.org/schema/p"
+	  xmlns:context="http://www.springframework.org/schema/context"
+	  xmlns:aop="http://www.springframework.org/schema/aop"
+	  xmlns:tx="http://www.springframework.org/schema/tx"
+	  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+
+
+
+<!--读取属性文件的内容-->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.properties</value>
+			</list>
+		</property>
+	</bean>
+	<!--创建数据源组件-->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName" value="${driverClassName}"></property>
+		<property name="url" value="${url}"></property>
+		<property name="username" value="${username}"></property>
+		<property name="password" value="${password}"></property>
+	</bean>
+
+
+	<!--定义sqlSessionFactory工厂对象-->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!--注入数据源组件-->
+		<property name="dataSource" ref="dataSource"></property>
+		<!--加载mybatis的配置文件-->
+		<property name="configLocation" value="classpath:mybatis-config.xml"></property>
+	</bean>
+
+
+	<!--spring整合dao层组件-->
+	<bean id="mapper" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<!--注入工厂-->
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+		<!--指定扫描的dao层接口,自动生成代理实现类的对象-->
+		<property name="basePackage" value="com.team.house.mapper"></property>
+	</bean>
+
+	<!--spring整合service组件-->
+	<context:component-scan base-package="com.team.house.service.impl"></context:component-scan>
+
+	<!--spring的事务支持配置-->
+	<!--配置注解事务支持-->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	<!-- 注解方式配置事物 -->
+	<tx:annotation-driven proxy-target-class="true" transaction-manager="transactionManager"></tx:annotation-driven>
+
+</beans>
